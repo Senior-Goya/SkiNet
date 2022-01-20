@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using API.Helpers;
 using API.MiddleWare;
 using API.Extensions;
+using StackExchange.Redis;
 
 namespace API
 {
@@ -28,6 +29,10 @@ namespace API
             services.AddAutoMapper(typeof(MappingProfiles));
             services.AddControllers();
             services.AddDbContext<StoreContext>(x => x.UseSqlite(_config.GetConnectionString("DefaultConnection")));
+            services.AddSingleton<IConnectionMultiplexer>(x => {
+                var config = ConfigurationOptions.Parse(_config.GetConnectionString("Redis"),true);
+                return ConnectionMultiplexer.Connect(config);
+            });
             services.AddApplicationServices();
             services.AddSwaggerDocumentation();
             services.AddCors(opt =>
