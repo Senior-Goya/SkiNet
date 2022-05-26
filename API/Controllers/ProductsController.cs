@@ -52,6 +52,7 @@ namespace API.Controllers
         }
 
         [HttpGet("brands")]
+        
         public async Task<ActionResult<IReadOnlyList<ProductBrand>>> GetProductBrands()
         {
             return Ok(await _productBrandsRepo.ListAllAsync());

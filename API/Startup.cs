@@ -9,6 +9,8 @@ using API.Helpers;
 using API.MiddleWare;
 using API.Extensions;
 using StackExchange.Redis;
+using Core.Entities.Identity;
+using Infrastructure.Identity;
 
 namespace API
 {
@@ -29,11 +31,15 @@ namespace API
             services.AddAutoMapper(typeof(MappingProfiles));
             services.AddControllers();
             services.AddDbContext<StoreContext>(x => x.UseSqlite(_config.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<AppIdentityDbContext>(x => {
+                x.UseSqlite(_config.GetConnectionString("IdentityConnection"));
+            });
             services.AddSingleton<IConnectionMultiplexer>(x => {
                 var config = ConfigurationOptions.Parse(_config.GetConnectionString("Redis"),true);
                 return ConnectionMultiplexer.Connect(config);
             });
             services.AddApplicationServices();
+            services.AddIdentityServies();
             services.AddSwaggerDocumentation();
             services.AddCors(opt =>
             {
@@ -42,9 +48,6 @@ namespace API
                     policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200");
                 });
             });
-           
-
-
 
         }
 
@@ -52,19 +55,13 @@ namespace API
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseMiddleware<ExceptionMiddleware>();
-            app.UseSwaggerDocumentation();
-
-
-
-           
+            app.UseSwaggerDocumentation();     
             if (env.IsDevelopment())
             {
                 //app.UseDeveloperExceptionPage();
                 
             }
-
             app.UseStatusCodePagesWithReExecute("/errors/{0}");
-
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseStaticFiles();
